@@ -28,4 +28,6 @@ def get_dataset():
     x_train=torch.reshape(x_train, (x_train.shape[0], 1, x_train.shape[1]))
     x_test=torch.reshape(x_test, (x_test.shape[0], 1, x_test.shape[1]))
 
-    return x_train, y_train, x_test, y_test
+
+
+    return x_train, y_train, x_test, y_test, df
