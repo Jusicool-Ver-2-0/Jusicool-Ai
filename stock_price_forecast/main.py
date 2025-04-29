@@ -1,6 +1,4 @@
-import torch
-import torch.nn as nn
-from dataloader import *
+from stock_price_forecast.dataloader import *
 from model import *
 from trainer import *
 
