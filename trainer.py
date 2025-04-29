@@ -21,7 +21,6 @@ def test(model, x_test, y_test, criterion, df):
     model.eval()
     with torch.no_grad():
         outputs = model(x_test)
-        loss = criterion(outputs, y_test)
         predicted = outputs.detach().cpu().numpy()
         label_y = y_test.detach().numpy()
         ms=MinMaxScaler()
