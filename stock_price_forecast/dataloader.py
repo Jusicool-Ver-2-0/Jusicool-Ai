@@ -1,49 +1,48 @@
-import requests
+import torch
+import numpy as np
 import pandas as pd
 import time
+from torch.utils.data import TensorDataset, DataLoader
 from data_function import *
-import torch
-
 
 def get_dataset():
     markets = ["KRW-BTC", "KRW-ETH", "KRW-XRP", "KRW-SOL", "KRW-ADA"]
-
     all_data = pd.DataFrame()
 
     for market in markets:
         df = data_load(market, count=120)
+        df["coin"] = market  # coin 컬럼 추가
         all_data = pd.concat([all_data, df])
         time.sleep(0.2)
 
     all_data = all_data.sort_values(by=["coin", "date"]).reset_index(drop=True)
-    onehot = pd.get_dummies(all_data["coin"])
-    all_data = pd.concat([all_data, onehot], axis=1)
-    datas, labels = create_sequences(all_data, window_size=3)
-    datas = data_normalization(datas, num_feature=[0, 1, 2, 3, 4])
 
-    x_train, y_train, x_val, y_val = split_data(datas, labels, train_size=0.8, val_size=0.2)
-    x_train = x_train.astype(float)
-    x_val = x_val.astype(float)
+    all_data["label"] = all_data["close"].shift(-1)
+    all_data["label"] = (all_data["label"] > all_data["close"]).astype(int)
+    all_data = all_data.dropna().reset_index(drop=True)
+
+    x, y = create_sequences(all_data, window_size=3)
+    x = data_normalization(x, num_feature_idx=[0, 1, 2, 3, 4])
+
+    x_train, y_train, x_val, y_val = split_data(x, y)
+
     x_train = torch.tensor(x_train, dtype=torch.float32)
-    y_train = torch.tensor(y_train, dtype=torch.float32)
+    y_train = torch.tensor(y_train, dtype=torch.float32).unsqueeze(1)
     x_val = torch.tensor(x_val, dtype=torch.float32)
-    y_val = torch.tensor(y_val, dtype=torch.float32)
+    y_val = torch.tensor(y_val, dtype=torch.float32).unsqueeze(1)
 
-    # Test Data
-    df = data_load("KRW-DOGE", count=120)
-    x_test = []
-    y_test = []
-    feature_columns = ['open', 'high', 'low', 'change', 'volume']
-    for i in range(len(df) - 3):
-        seq = df[feature_columns].iloc[i:i + 3].values
-        label = df.iloc[i + 3]['close']
+    # Test 데이터: DOGE 하나만
+    df_test = data_load("KRW-DOGE", count=120)
+    df_test["label"] = df_test["close"].shift(-1)
+    df_test["label"] = (df_test["label"] > df_test["close"]).astype(int)
+    df_test = df_test.dropna().reset_index(drop=True)
 
-        x_test.append(seq)
-        y_test.append(label)
-
-    x_test = np.array(x_test)
-    x_test = data_normalization(x_test, num_feature=[0, 1, 2, 3, 4])
+    x_test, y_test = create_sequences(df_test, window_size=3)
+    x_test = data_normalization(x_test, num_feature_idx=[0, 1, 2, 3, 4])
     x_test = torch.tensor(x_test, dtype=torch.float32)
-    y_test = torch.tensor(y_test, dtype=torch.float32)
+    y_test = torch.tensor(y_test, dtype=torch.float32).unsqueeze(1)
 
-    return x_train, y_train, x_val, y_val, x_test, y_test
+    train_loader = DataLoader(TensorDataset(x_train, y_train), batch_size=64, shuffle=True)
+    val_loader = DataLoader(TensorDataset(x_val, y_val), batch_size=64, shuffle=False)
+
+    return train_loader, val_loader, x_test, y_test
