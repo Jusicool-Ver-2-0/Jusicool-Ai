@@ -8,7 +8,7 @@ class GRU(nn.Module):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.seq_length = seq_length
-        self.gru = nn.GRU(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers, batch_first=True, dropout=0.2)
+        self.gru = nn.GRU(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers, batch_first=True)
         self.fc_1 = nn.Linear(hidden_size, 64)
         self.fc = nn.Linear(64, 1)
         self.relu = nn.ReLU()

@@ -9,7 +9,8 @@ def train(model, train_loader, val_loader, criterion, optimizer, epochs):
         model.train()
         running_loss = 0
         for x_batch, y_batch in train_loader:
-            outputs = model(x_batch).squeeze()
+            outputs = model(x_batch).squeeze(1)
+            y_batch = y_batch.squeeze(1)
             loss = criterion(outputs, y_batch)
 
             optimizer.zero_grad()
@@ -25,8 +26,9 @@ def train(model, train_loader, val_loader, criterion, optimizer, epochs):
         val_loss = 0
         with torch.no_grad():
             for x_val, y_val in val_loader:
-                outputs = model(x_val).squeeze()
-                loss = criterion(outputs, y_val.float())
+                outputs = model(x_val).squeeze(1)
+                y_val = y_val.squeeze(1)
+                loss = criterion(outputs, y_val)
                 val_loss += loss.item()
 
             avg_val_loss = val_loss / len(val_loader)
@@ -45,9 +47,10 @@ def train(model, train_loader, val_loader, criterion, optimizer, epochs):
 def test(model, x_test, y_test, criterion):
     model.eval()
     with torch.no_grad():
-        outputs = model(x_test).squeeze()
+        outputs = model(x_test)
         predicted = (outputs >= 0.5).float()
+        y_test=y_test.squeeze(1)
+        predicted=predicted.squeeze(1)
         correct = (predicted == y_test).sum().item()
         accuracy = correct / y_test.size(0)
-        loss = criterion(outputs, y_test.float()).item()
-        print(f"Test Loss: {loss:.4f}, Accuracy: {accuracy*100:.2f}%")
+        print(f"Accuracy: {accuracy*100:.2f}%")
