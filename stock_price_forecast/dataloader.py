@@ -21,15 +21,12 @@ def get_dataset():
     all_data["label"] = (all_data["label"] > all_data["close"]).astype(int)
     all_data = all_data.dropna().reset_index(drop=True)
 
-    x, y = create_sequences(all_data, window_size=3)
-    x = data_normalization(x, num_feature_idx=[0, 1, 2, 3, 4])
+    x_train, y_train = create_sequences(all_data, window_size=3)
+    x_train = data_normalization(x_train, num_feature_idx=[0, 1, 2, 3, 4])
 
-    x_train, y_train, x_val, y_val = split_data(x, y)
 
     x_train = torch.tensor(x_train, dtype=torch.float32)
     y_train = torch.tensor(y_train, dtype=torch.float32).unsqueeze(1)
-    x_val = torch.tensor(x_val, dtype=torch.float32)
-    y_val = torch.tensor(y_val, dtype=torch.float32).unsqueeze(1)
 
     # Test 데이터: DOGE 하나만
     df_test = data_load("KRW-DOGE", count=120)
@@ -41,6 +38,17 @@ def get_dataset():
     x_test = data_normalization(x_test, num_feature_idx=[0, 1, 2, 3, 4])
     x_test = torch.tensor(x_test, dtype=torch.float32)
     y_test = torch.tensor(y_test, dtype=torch.float32).unsqueeze(1)
+
+    # validation
+    df_val = data_load("KRW-ETC", count=120)
+    df_val["label"] = df_val["close"].shift(-1)
+    df_val["label"] = (df_val["label"] > df_val["close"]).astype(int)
+    df_val = df_val.dropna().reset_index(drop=True)
+
+    x_val, y_val = create_sequences(df_val, window_size=3)
+    x_val = data_normalization(x_val, num_feature_idx=[0, 1, 2, 3, 4])
+    x_val = torch.tensor(x_val, dtype=torch.float32)
+    y_val = torch.tensor(y_val, dtype=torch.float32).unsqueeze(1)
 
     train_loader = DataLoader(TensorDataset(x_train, y_train), batch_size=64, shuffle=True)
     val_loader = DataLoader(TensorDataset(x_val, y_val), batch_size=64, shuffle=False)

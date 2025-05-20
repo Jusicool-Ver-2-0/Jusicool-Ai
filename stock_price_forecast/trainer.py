@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-def train(model, train_loader, val_loader, criterion, optimizer, epochs):
+def train(model, train_loader, val_loader, criterion, optimizer, epochs, writer):
     best_loss = float('inf')
     best_weights = None
 
@@ -20,7 +20,7 @@ def train(model, train_loader, val_loader, criterion, optimizer, epochs):
             running_loss += loss.item()
 
         avg_train_loss = running_loss / len(train_loader)
-
+        writer.add_scalar('Training loss', avg_train_loss, epoch)
         # Validation
         model.eval()
         val_loss = 0
@@ -32,6 +32,7 @@ def train(model, train_loader, val_loader, criterion, optimizer, epochs):
                 val_loss += loss.item()
 
             avg_val_loss = val_loss / len(val_loader)
+            writer.add_scalar('validation Loss', avg_val_loss, epoch)
 
             if avg_val_loss < best_loss:
                 best_loss = avg_val_loss
