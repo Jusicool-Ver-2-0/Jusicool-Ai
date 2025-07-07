@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-
+from measurement import *
 def train(model, train_loader, val_loader, criterion, optimizer, epochs, writer):
     best_loss = float('inf')
     best_weights = None
