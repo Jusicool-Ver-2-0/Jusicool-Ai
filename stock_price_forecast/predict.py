@@ -1,7 +1,7 @@
 import argparse
 import torch
-from model import GRU
-from data_function import data_load, create_sequences, data_normalization
+from .model import GRU
+from .data_function import data_load, create_sequences, data_normalization
 import numpy as np
 import time
 
@@ -24,12 +24,14 @@ def predict(market, model_path, window_size=14, num_features=9):
     model.eval()
     with torch.no_grad():
         output = model(x_tensor).item()
-        prediction = 1 if output >= 0.5 else 0
+        prediction = True if output >= 0.5 else False
 
-    if prediction == 1:
+    if prediction == True:
         print("상승")
     else:
         print("하락")
+    
+    return prediction
 
 if __name__ == "__main__":
     start_time = time.time()

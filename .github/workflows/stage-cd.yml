@@ -38,4 +38,4 @@ jobs:
             docker stop jusicool-ai || true
             docker rm jusicool-ai || true
             docker build -t jusicool-ai .
-            docker run -d --name jusicool-ai -p 3005:3005 jusicool-ai
+            docker run -d --name jusicool-ai -p 3000:3000 jusicool-ai
